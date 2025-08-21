@@ -1,0 +1,76 @@
+# ===================================================================
+# .gitignore para um CLI em Go
+# ===================================================================
+
+# Binários e artefatos de build
+# -------------------------------------------------------------------
+# Substitua 'seu-cli' pelo nome do seu executável.
+# O Go geralmente nomeia o binário com o nome do diretório do módulo.
+
+
+# Diretórios comuns de output de build e release.
+/bin/
+/build/
+/dist/
+
+# Arquivos de dependências (se você usar 'go mod vendor')
+# -------------------------------------------------------------------
+# O diretório 'vendor' contém cópias das dependências.
+# É uma prática comum não versioná-lo, pois o go.mod já define as versões.
+/vendor/
+
+# Arquivos de Ferramentas e Testes do Go
+# -------------------------------------------------------------------
+# Arquivos de cobertura de teste e profiling.
+*.out
+cover.out
+profile.out
+c.out
+
+# Arquivos de log e temporários
+# -------------------------------------------------------------------
+*.exe
+*.log
+*.tmp
+*.temp
+
+# Configurações de IDEs e Editores
+# -------------------------------------------------------------------
+# VS Code
+.vscode/
+
+# JetBrains / GoLand
+.idea/
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos de Sistema Operacional
+# -------------------------------------------------------------------
+# macOS
+.DS_Store
+._*
+.AppleDouble
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Arquivos de Configuração Local e Segredos
+# -------------------------------------------------------------------
+# Nunca versione segredos, chaves de API ou credenciais.
+# Use um arquivo .env.example como modelo (este sim deve ser versionado).
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Se você tiver arquivos de configuração locais que não devem ser compartilhados.
+# Ex: config.local.yaml
+*.local.*
