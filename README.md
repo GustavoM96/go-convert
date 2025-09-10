@@ -1,11 +1,12 @@
 # go-convert
 
-**go-convert** é uma ferramenta de linha de comando (CLI) desenvolvida em Go para facilitar conversões rápidas, como codificação/decodificação Base64 e decodificação de payloads de tokens JWT.
+**go-convert** é uma ferramenta de linha de comando (CLI) desenvolvida em Go para facilitar conversões rápidas, como codificação/decodificação Base64, decodificação de payloads de tokens JWT e geração de senhas seguras.
 
 ## Funcionalidades
 
 - **Base64**: Codifica texto para Base64 ou decodifica Base64 para texto.
 - **JWT**: Decodifica e exibe o payload de um token JWT em formato JSON legível.
+- **Password**: Gera senhas seguras e aleatórias com opções de personalização.
 
 ## Instalação
 
@@ -58,6 +59,16 @@ Decodifique o payload de um token JWT:
 
 O payload será exibido em formato JSON indentado.
 
+### Comando Password
+
+Gere uma senha segura:
+
+```sh
+./go-convert password --length 16 --times 3
+# ou
+./go-convert password -l 16 -t 3
+```
+
 ## Estrutura do Projeto
 
 ```
@@ -67,7 +78,8 @@ O payload será exibido em formato JSON indentado.
 ├── cmd/
 │   ├── root.go            # Comando raiz e inicialização do CLI
 │   ├── base64.go          # Implementação do comando base64
-│   └── jwt.go             # Implementação do comando jwt
+│   ├── jwt.go             # Implementação do comando jwt
+│   └── password.go        # Implementação do comando password
 └── .gitignore
 ```
 
@@ -75,6 +87,7 @@ O payload será exibido em formato JSON indentado.
 - `cmd/root.go`: Define o comando principal e inicializa a CLI.
 - `cmd/base64.go`: Implementa as operações de codificação e decodificação Base64.
 - `cmd/jwt.go`: Implementa a decodificação do payload de tokens JWT.
+- `cmd/password.go`: Implementa a geração de senhas seguras.
 
 ## Dependências
 
@@ -100,6 +113,12 @@ Decodificar JWT:
 ./go-convert jwt -d "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiZ29oYSJ9.signature"
 ```
 
+Gerar senha segura:
+
+```sh
+./go-convert password -l 16 -s -n -u
+```
+
 ## Licença
 
 Este projeto está sob a licença MIT.
@@ -112,3 +131,4 @@ Para mais detalhes, consulte os arquivos de código-fonte:
 - `cmd/root.go`
 - `cmd/base64.go`
 - `cmd/jwt.go`
+- `cmd/password.go`
