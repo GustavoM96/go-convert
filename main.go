@@ -1,6 +1,6 @@
 package main
 
-import "go-converter/cmd"
+import "go-convert/cmd"
 
 func main() {
 	cmd.Execute()

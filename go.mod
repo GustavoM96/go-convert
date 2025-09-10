@@ -1,4 +1,4 @@
-module go-converter
+module go-convert
 
 go 1.24.5
 
