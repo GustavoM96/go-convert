@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"unicode"
 
 	"github.com/spf13/cobra"
 )
@@ -22,78 +23,93 @@ var textCmd = &cobra.Command{
 
 		if cmd.Flags().Changed("lower") {
 			position, _ := cmd.Flags().GetInt("lower")
-			result = transformByPosition(result, position, strings.ToLower)
+			result = modifyText(result, position, strings.ToLower)
 		}
 
 		if cmd.Flags().Changed("upper") {
 			position, _ := cmd.Flags().GetInt("upper")
-			result = transformByPosition(result, position, strings.ToUpper)
+			result = modifyText(result, position, strings.ToUpper)
 		}
 
 		if start, _ := cmd.Flags().GetString("add-start"); start != "" {
-			result = addAtWord(result, start, false)
+			result = modifyText(result, 0, func(word string) string {
+				return start + word
+			})
 		}
 
 		if end, _ := cmd.Flags().GetString("add-end"); end != "" {
-			result = addAtWord(result, end, true)
+			result = modifyText(result, 0, func(word string) string {
+				return word + end
+			})
 		}
 
 		fmt.Println(result)
-
 	},
 }
 
-func addAtWord(text string, insert string, toEnd bool) string {
-	words := strings.Fields(text)
-	for i, w := range words {
-		if toEnd {
-			words[i] = w + insert
-			continue
-		}
-		words[i] = insert + w
+func modifierWord(word string, position int, modifier func(string) string) string {
+	if position == 0 {
+		return modifier(word)
 	}
-	return strings.Join(words, " ")
+	runes := []rune(word)
+	lenRunes := len(runes)
+
+	var index int
+	if position < 0 {
+		index = lenRunes + position
+	} else {
+		index = position - 1
+	}
+
+	if index < 0 || index >= lenRunes {
+		return word
+	}
+
+	prefix := string(runes[:index])
+	charToModify := string(runes[index])
+	suffix := string(runes[index+1:])
+
+	return prefix + modifier(charToModify) + suffix
 }
 
-func transformByPosition(text string, position int, transformFunc func(string) string) string {
-	words := strings.Fields(text)
-	for i, w := range words {
-		runes := []rune(w)
-		switch position {
-		case 0:
-			words[i] = transformFunc(w)
-		case 1:
-			if len(runes) > 0 {
-				runes[0] = []rune(transformFunc(string(runes[0])))[0]
-				words[i] = string(runes)
-			}
-		case -1:
-			if len(runes) > 0 {
-				runes[len(runes)-1] = []rune(transformFunc(string(runes[len(runes)-1])))[0]
-				words[i] = string(runes)
-			}
-		default:
-			if position > 0 && position <= len(runes) {
-				runes[position-1] = []rune(transformFunc(string(runes[position-1])))[0]
-				words[i] = string(runes)
-			}
+func modifyText(text string, position int, modifier func(string) string) string {
+	var builder strings.Builder
+	builder.Grow(len(text))
+	wordStartIndex := -1
+
+	processPendingWord := func(endIndex int) {
+		if wordStartIndex != -1 {
+			word := text[wordStartIndex:endIndex]
+			modifiedWord := modifierWord(word, position, modifier)
+			builder.WriteString(modifiedWord)
+			wordStartIndex = -1
 		}
 	}
-	return strings.Join(words, " ")
+
+	for i, r := range text {
+		isWordChar := unicode.IsLetter(r) || unicode.IsNumber(r)
+
+		if isWordChar && wordStartIndex == -1 {
+			wordStartIndex = i
+		}
+
+		if !isWordChar {
+			processPendingWord(i)
+			builder.WriteRune(r)
+		}
+	}
+
+	processPendingWord(len(text))
+	return builder.String()
 }
 
 func init() {
 
 	textCmd.Flags().StringP("text", "t", "", "Conteúdo do texto")
-	textCmd.Flags().IntP("lower", "l", -1, "deixe o texto em minúsculo pela posição, 0 para tudo, 1 para a primeira letra, -1 para a última letra")
-	textCmd.Flags().IntP("upper", "u", -1, "deixe o texto em maiúsculo pela posição, 0 para tudo, 1 para a primeira letra, -1 para a última letra")
+	textCmd.Flags().IntP("lower", "l", 0, "deixe o texto em minúsculo pela posição, 0 para tudo, 1 para a primeira letra, -1 para a última letra")
+	textCmd.Flags().IntP("upper", "u", 0, "deixe o texto em maiúsculo pela posição, 0 para tudo, 1 para a primeira letra, -1 para a última letra")
 	textCmd.Flags().StringP("add-start", "s", "", "adiciona caracteres para cada palavra do texto")
 	textCmd.Flags().StringP("add-end", "e", "", "adiciona caracteres para cada palavra do texto")
-
-	flagU := textCmd.Flags().Lookup("upper")
-	flagU.NoOptDefVal = "0"
-	flagL := textCmd.Flags().Lookup("lower")
-	flagL.NoOptDefVal = "0"
 
 	rootCmd.AddCommand(textCmd)
 }
