@@ -31,8 +31,10 @@ var passwordCmd = &cobra.Command{
 }
 
 func generatePassword(length int) string {
-	const charset string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var sb strings.Builder
+	sb.Grow(length)
+
 	for range length {
 		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
 		sb.WriteByte(charset[idx.Int64()])
