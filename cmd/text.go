@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"go-convert/utils"
 	"strings"
 	"unicode"
 
@@ -14,36 +15,58 @@ var textCmd = &cobra.Command{
 	Long:  `Realiza conversão de palavras, como lower, upper, adição de caracter etc...`,
 	Run: func(cmd *cobra.Command, args []string) {
 		text, _ := cmd.Flags().GetString("text")
-		result := text
+		useClipboard, _ := cmd.Flags().GetBool("clipboard")
+
+		if useClipboard && text != "" {
+			fmt.Println("As flags --text e --clipboard não podem ser usadas juntas.")
+			return
+		}
+
+		if useClipboard {
+			clipboardText, err := utils.ReadFromClipboard()
+			if err != nil {
+				fmt.Printf("Erro ao ler da área de transferência: %v\n", err)
+				return
+			}
+			text = clipboardText
+		}
 
 		if len(text) <= 0 {
 			fmt.Println("O tamanho do texto deve ser maior que zero.")
 			return
 		}
 
+		fmt.Println("Convertendo o texto:", text)
 		if cmd.Flags().Changed("lower") {
 			position, _ := cmd.Flags().GetInt("lower")
-			result = modifyText(result, position, strings.ToLower)
+			text = modifyText(text, position, strings.ToLower)
 		}
 
 		if cmd.Flags().Changed("upper") {
 			position, _ := cmd.Flags().GetInt("upper")
-			result = modifyText(result, position, strings.ToUpper)
+			text = modifyText(text, position, strings.ToUpper)
 		}
 
 		if start, _ := cmd.Flags().GetString("add-start"); start != "" {
-			result = modifyText(result, 0, func(word string) string {
+			text = modifyText(text, 0, func(word string) string {
 				return start + word
 			})
 		}
 
 		if end, _ := cmd.Flags().GetString("add-end"); end != "" {
-			result = modifyText(result, 0, func(word string) string {
+			text = modifyText(text, 0, func(word string) string {
 				return word + end
 			})
 		}
 
-		fmt.Println(result)
+		fmt.Println(text)
+		if copyToClipboard, _ := cmd.Flags().GetBool("copy"); copyToClipboard {
+			if err := utils.WriteToClipboard(text); err != nil {
+				fmt.Printf("Erro ao copiar para a área de transferência: %v\n", err)
+				return
+			}
+			fmt.Println("Texto copiado para a área de transferência.")
+		}
 	},
 }
 
@@ -104,7 +127,8 @@ func modifyText(text string, position int, modifier func(string) string) string 
 }
 
 func init() {
-
+	textCmd.Flags().BoolP("clipboard", "c", false, "Usar o texto da área de transferência (clipboard)")
+	textCmd.Flags().BoolP("copy", "C", false, "Copia o resultado para a área de transferência")
 	textCmd.Flags().StringP("text", "t", "", "Conteúdo do texto")
 	textCmd.Flags().IntP("lower", "l", 0, "deixe o texto em minúsculo pela posição, 0 para tudo, 1 para a primeira letra, -1 para a última letra")
 	textCmd.Flags().IntP("upper", "u", 0, "deixe o texto em maiúsculo pela posição, 0 para tudo, 1 para a primeira letra, -1 para a última letra")
